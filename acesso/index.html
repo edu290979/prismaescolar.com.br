@@ -260,24 +260,34 @@ function fazerLogin() {
   document.getElementById('btn-entrar').disabled = true;
   document.getElementById('carregando').classList.add('visivel');
 
-  const nomeCallback = 'prismaCallback_' + Date.now();
-  const script = document.createElement('script');
+  const url = `${AUTH_URL}?codigo=${encodeURIComponent(codigo)}&senha=${encodeURIComponent(senha)}`;
 
-  window[nomeCallback] = function(dados) {
-    document.getElementById('carregando').classList.remove('visivel');
-    document.getElementById('btn-entrar').disabled = false;
-    document.body.removeChild(script);
-    delete window[nomeCallback];
+  fetch(url, { redirect: 'follow' })
+    .then(r => r.text())
+    .then(texto => {
+      document.getElementById('carregando').classList.remove('visivel');
+      document.getElementById('btn-entrar').disabled = false;
 
-    if (dados.ok) {
-      sessionStorage.setItem('prisma_sessao', JSON.stringify(dados));
-      mostrarAcesso(dados);
-    } else {
+      // Remove wrapper JSONP se presente
+      const json = texto.replace(/^[^(]+\(/, '').replace(/\)$/, '');
+      const dados = JSON.parse(json);
+
+      if (dados.ok) {
+        sessionStorage.setItem('prisma_sessao', JSON.stringify(dados));
+        mostrarAcesso(dados);
+      } else {
+        document.getElementById('msg-erro').classList.add('visivel');
+        document.getElementById('msg-erro').textContent = '⚠ Código ou senha incorretos.';
+        document.getElementById('inp-senha').value = '';
+      }
+    })
+    .catch(() => {
+      document.getElementById('carregando').classList.remove('visivel');
+      document.getElementById('btn-entrar').disabled = false;
       document.getElementById('msg-erro').classList.add('visivel');
-      document.getElementById('msg-erro').textContent = '⚠ Código ou senha incorretos.';
-      document.getElementById('inp-senha').value = '';
-    }
-  };
+      document.getElementById('msg-erro').textContent = '⚠ Erro de conexão. Tente novamente.';
+    });
+}
 
   script.src = `${AUTH_URL}?codigo=${encodeURIComponent(codigo)}&senha=${encodeURIComponent(senha)}&callback=${nomeCallback}`;
   script.onerror = function() {
