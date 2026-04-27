@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Área do Cliente — Prisma</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,700&family=Syne:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#080e1f;--navy-2:#0d1630;--navy-3:#111d3c;
+  --azul:#2563eb;--azul-v:#3b82f6;--azul-cl:#60a5fa;
+  --texto:#e2e8f0;--sub:#94a3b8;--borda:rgba(255,255,255,.08);
+  --erro:#f87171;--sucesso:#4ade80;
+}
+html,body{height:100%}
+body{font-family:'Syne',sans-serif;background:var(--navy);color:var(--texto);display:flex;flex-direction:column;min-height:100vh}
+.bg-glow{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+.bg-glow::before{content:'';position:absolute;width:700px;height:700px;top:-200px;left:-150px;background:radial-gradient(circle,rgba(37,99,235,.1) 0%,transparent 70%);animation:drift 20s ease-in-out infinite alternate}
+.bg-glow::after{content:'';position:absolute;width:500px;height:500px;bottom:-150px;right:-100px;background:radial-gradient(circle,rgba(37,99,235,.06) 0%,transparent 70%);animation:drift 25s ease-in-out infinite alternate-reverse}
+@keyframes drift{from{transform:translate(0,0)}to{transform:translate(60px,40px)}}
+.bg-grid{position:fixed;inset:0;pointer-events:none;z-index:0;background-image:linear-gradient(rgba(255,255,255,.02) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.02) 1px,transparent 1px);background-size:56px 56px}
+
+/* Nav */
+nav{position:relative;z-index:10;padding:24px 28px;border-bottom:1px solid var(--borda)}
+.nav-inner{max-width:1060px;margin:0 auto;display:flex;align-items:center;justify-content:space-between}
+.logo{display:flex;align-items:center;gap:10px;text-decoration:none}
+.logo-mark{width:34px;height:34px;background:linear-gradient(135deg,var(--azul),var(--azul-v));border-radius:8px;display:flex;align-items:center;justify-content:center;box-shadow:0 0 20px rgba(37,99,235,.35)}
+.logo-nome{font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:#fff}
+.btn-voltar{font-size:13px;color:var(--sub);text-decoration:none;display:flex;align-items:center;gap:6px;transition:color .2s}
+.btn-voltar:hover{color:var(--texto)}
+
+/* Container do login */
+.login-wrap{flex:1;display:flex;align-items:center;justify-content:center;padding:40px 24px;position:relative;z-index:1}
+.login-box{width:100%;max-width:420px;animation:fadeUp .6s ease both}
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+
+.login-header{text-align:center;margin-bottom:40px}
+.login-header .icon{width:56px;height:56px;background:linear-gradient(135deg,var(--azul),var(--azul-v));border-radius:14px;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;box-shadow:0 0 32px rgba(37,99,235,.4)}
+.login-header h1{font-family:'Playfair Display',serif;font-size:28px;font-weight:700;color:#fff;margin-bottom:8px}
+.login-header p{font-size:14px;color:var(--sub);line-height:1.6}
+
+/* Formulário */
+.form-card{background:var(--navy-2);border:1px solid var(--borda);border-radius:16px;padding:32px;box-shadow:0 20px 60px rgba(0,0,0,.4)}
+.campo{margin-bottom:20px}
+.campo label{display:block;font-size:12px;font-weight:600;color:var(--sub);letter-spacing:.5px;text-transform:uppercase;margin-bottom:8px}
+.campo input{
+  width:100%;padding:14px 16px;
+  background:rgba(255,255,255,.05);
+  border:1px solid var(--borda);
+  border-radius:10px;
+  color:var(--texto);
+  font-family:'Syne',sans-serif;
+  font-size:15px;
+  outline:none;
+  transition:border-color .2s,background .2s;
+}
+.campo input::placeholder{color:rgba(255,255,255,.2)}
+.campo input:focus{border-color:var(--azul-v);background:rgba(37,99,235,.08)}
+.campo input.erro-input{border-color:var(--erro)}
+
+.btn-entrar{
+  width:100%;padding:15px;
+  background:linear-gradient(135deg,var(--azul),var(--azul-v));
+  color:#fff;border:none;border-radius:10px;
+  font-family:'Syne',sans-serif;font-size:15px;font-weight:700;
+  cursor:pointer;margin-top:8px;
+  box-shadow:0 4px 20px rgba(37,99,235,.4);
+  transition:all .2s;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  letter-spacing:.3px;
+}
+.btn-entrar:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(37,99,235,.5)}
+.btn-entrar:disabled{opacity:.5;cursor:not-allowed;transform:none}
+
+.msg-erro{
+  display:none;align-items:center;gap:8px;
+  margin-top:16px;padding:12px 16px;
+  background:rgba(248,113,113,.1);
+  border:1px solid rgba(248,113,113,.25);
+  border-radius:8px;font-size:13px;color:var(--erro);
+}
+.msg-erro.visivel{display:flex}
+
+.msg-carregando{
+  display:none;align-items:center;justify-content:center;gap:10px;
+  margin-top:16px;font-size:13px;color:var(--sub);
+}
+.msg-carregando.visivel{display:flex}
+.spinner{width:16px;height:16px;border:2px solid rgba(255,255,255,.1);border-top-color:var(--azul-cl);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Área de acesso — aparece após login */
+.area-acesso{display:none;animation:fadeUp .5s ease both}
+.area-acesso.visivel{display:block}
+.boas-vindas{text-align:center;margin-bottom:32px}
+.boas-vindas h2{font-family:'Playfair Display',serif;font-size:24px;color:#fff;margin-bottom:6px}
+.boas-vindas p{font-size:13px;color:var(--sub)}
+.acesso-btns{display:flex;flex-direction:column;gap:12px}
+.btn-acesso-item{
+  display:flex;align-items:center;gap:16px;
+  padding:20px 22px;
+  background:rgba(255,255,255,.04);
+  border:1px solid var(--borda);
+  border-radius:12px;
+  text-decoration:none;
+  transition:all .2s;
+  cursor:pointer;
+}
+.btn-acesso-item:hover{background:rgba(37,99,235,.12);border-color:rgba(37,99,235,.35);transform:translateX(4px)}
+.btn-acesso-item .ai{font-size:26px;flex-shrink:0}
+.btn-acesso-item .at{flex:1}
+.btn-acesso-item .at strong{display:block;font-size:14px;font-weight:700;color:#fff;margin-bottom:3px}
+.btn-acesso-item .at span{font-size:12px;color:var(--sub)}
+.btn-acesso-item .seta{color:var(--azul-cl);font-size:18px;opacity:.6;transition:opacity .2s}
+.btn-acesso-item:hover .seta{opacity:1}
+.btn-sair{width:100%;margin-top:20px;padding:10px;background:transparent;border:1px solid var(--borda);border-radius:8px;color:var(--sub);font-family:'Syne',sans-serif;font-size:13px;cursor:pointer;transition:all .2s}
+.btn-sair:hover{border-color:rgba(248,113,113,.4);color:var(--erro)}
+
+footer{position:relative;z-index:1;padding:20px 28px;border-top:1px solid var(--borda);text-align:center}
+footer p{font-size:11px;color:rgba(255,255,255,.2)}
+</style>
+</head>
+<body>
+<div class="bg-glow"></div>
+<div class="bg-grid"></div>
+
+<nav>
+  <div class="nav-inner">
+    <a href="/" class="logo">
+      <div class="logo-mark">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+          <polygon points="12,2 22,20 2,20" fill="rgba(255,255,255,.9)"/>
+          <polygon points="12,2 17,20 7,20" fill="rgba(255,255,255,.3)"/>
+        </svg>
+      </div>
+      <span class="logo-nome">Prisma</span>
+    </a>
+    <a href="/" class="btn-voltar">
+      ← Voltar ao site
+    </a>
+  </div>
+</nav>
+
+<div class="login-wrap">
+  <div class="login-box">
+
+    <!-- Formulário de login -->
+    <div id="tela-login">
+      <div class="login-header">
+        <div class="icon">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
+            <polyline points="10 17 15 12 10 7"/>
+            <line x1="15" y1="12" x2="3" y2="12"/>
+          </svg>
+        </div>
+        <h1>Área do cliente</h1>
+        <p>Acesso restrito às instituições contratantes.<br>Utilize as credenciais fornecidas pelo Prisma.</p>
+      </div>
+
+      <div class="form-card">
+        <div class="campo">
+          <label>Código da instituição</label>
+          <input type="text" id="inp-codigo" placeholder="Ex: COLEGIO2026" autocomplete="off" autocapitalize="characters">
+        </div>
+        <div class="campo">
+          <label>Senha de acesso</label>
+          <input type="password" id="inp-senha" placeholder="••••••••">
+        </div>
+        <button class="btn-entrar" id="btn-entrar" onclick="fazerLogin()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+          Entrar
+        </button>
+        <div class="msg-carregando" id="carregando">
+          <div class="spinner"></div>
+          Verificando credenciais…
+        </div>
+        <div class="msg-erro" id="msg-erro">
+          ⚠ Código ou senha incorretos. Verifique suas credenciais.
+        </div>
+      </div>
+    </div>
+
+    <!-- Área pós-login -->
+    <div id="tela-acesso" class="area-acesso">
+      <div class="form-card">
+        <div class="boas-vindas">
+          <h2>Bem-vindo, <span id="nome-escola"></span></h2>
+          <p>Selecione o acesso desejado</p>
+        </div>
+        <div class="acesso-btns">
+          <a id="btn-dashboard" href="#" target="_blank" class="btn-acesso-item">
+            <span class="ai">📊</span>
+            <div class="at">
+              <strong>Dashboard</strong>
+              <span>Coordenação e Direção — visão completa</span>
+            </div>
+            <span class="seta">→</span>
+          </a>
+          <a id="btn-formulario" href="#" target="_blank" class="btn-acesso-item">
+            <span class="ai">📝</span>
+            <div class="at">
+              <strong>Formulário de avaliação</strong>
+              <span>Professores — preenchimento de avaliações</span>
+            </div>
+            <span class="seta">→</span>
+          </a>
+        </div>
+        <button class="btn-sair" onclick="sair()">Sair da conta</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<footer>
+  <p>Prisma © 2026 — Sistema de uso restrito às instituições contratantes.</p>
+</footer>
+
+<script>
+// ── URL do Apps Script de autenticação ──
+// Substitui pela URL do teu Auth.gs quando publicado
+const AUTH_URL = 'COLE_AQUI_A_URL_DO_AUTH_GS';
+
+// ── Verifica se já está logado ──
+window.addEventListener('DOMContentLoaded', () => {
+  const sessao = sessionStorage.getItem('prisma_sessao');
+  if (sessao) {
+    try {
+      const dados = JSON.parse(sessao);
+      mostrarAcesso(dados);
+    } catch(e) {
+      sessionStorage.removeItem('prisma_sessao');
+    }
+  }
+
+  // Enter no campo de senha dispara login
+  document.getElementById('inp-senha').addEventListener('keydown', e => {
+    if (e.key === 'Enter') fazerLogin();
+  });
+  document.getElementById('inp-codigo').addEventListener('keydown', e => {
+    if (e.key === 'Enter') document.getElementById('inp-senha').focus();
+  });
+});
+
+function fazerLogin() {
+  const codigo = document.getElementById('inp-codigo').value.trim().toUpperCase();
+  const senha  = document.getElementById('inp-senha').value.trim();
+
+  if (!codigo || !senha) {
+    document.getElementById('msg-erro').classList.add('visivel');
+    document.getElementById('msg-erro').textContent = '⚠ Preencha o código e a senha.';
+    return;
+  }
+
+  document.getElementById('msg-erro').classList.remove('visivel');
+  document.getElementById('btn-entrar').disabled = true;
+  document.getElementById('carregando').classList.add('visivel');
+
+  const url = `${AUTH_URL}?codigo=${encodeURIComponent(codigo)}&senha=${encodeURIComponent(senha)}`;
+
+  fetch(url)
+    .then(r => r.json())
+    .then(dados => {
+      document.getElementById('carregando').classList.remove('visivel');
+      document.getElementById('btn-entrar').disabled = false;
+
+      if (dados.ok) {
+        sessionStorage.setItem('prisma_sessao', JSON.stringify(dados));
+        mostrarAcesso(dados);
+      } else {
+        document.getElementById('msg-erro').classList.add('visivel');
+        document.getElementById('msg-erro').textContent = '⚠ Código ou senha incorretos.';
+        document.getElementById('inp-senha').value = '';
+      }
+    })
+    .catch(() => {
+      document.getElementById('carregando').classList.remove('visivel');
+      document.getElementById('btn-entrar').disabled = false;
+      document.getElementById('msg-erro').classList.add('visivel');
+      document.getElementById('msg-erro').textContent = '⚠ Erro de conexão. Tente novamente.';
+    });
+}
+
+function mostrarAcesso(dados) {
+  document.getElementById('tela-login').style.display = 'none';
+  document.getElementById('nome-escola').textContent = dados.nome;
+  document.getElementById('btn-dashboard').href  = dados.url_dashboard;
+  document.getElementById('btn-formulario').href = dados.url_formulario;
+  document.getElementById('tela-acesso').classList.add('visivel');
+}
+
+function sair() {
+  sessionStorage.removeItem('prisma_sessao');
+  document.getElementById('tela-acesso').classList.remove('visivel');
+  document.getElementById('tela-login').style.display = 'block';
+  document.getElementById('inp-codigo').value = '';
+  document.getElementById('inp-senha').value  = '';
+}
+</script>
+</body>
+</html>
