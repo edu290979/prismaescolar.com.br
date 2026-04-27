@@ -260,29 +260,33 @@ function fazerLogin() {
   document.getElementById('btn-entrar').disabled = true;
   document.getElementById('carregando').classList.add('visivel');
 
-  const url = `${AUTH_URL}?codigo=${encodeURIComponent(codigo)}&senha=${encodeURIComponent(senha)}`;
+  const nomeCallback = 'prismaCallback_' + Date.now();
+  const script = document.createElement('script');
 
-  fetch(url)
-    .then(r => r.json())
-    .then(dados => {
-      document.getElementById('carregando').classList.remove('visivel');
-      document.getElementById('btn-entrar').disabled = false;
+  window[nomeCallback] = function(dados) {
+    document.getElementById('carregando').classList.remove('visivel');
+    document.getElementById('btn-entrar').disabled = false;
+    document.body.removeChild(script);
+    delete window[nomeCallback];
 
-      if (dados.ok) {
-        sessionStorage.setItem('prisma_sessao', JSON.stringify(dados));
-        mostrarAcesso(dados);
-      } else {
-        document.getElementById('msg-erro').classList.add('visivel');
-        document.getElementById('msg-erro').textContent = '⚠ Código ou senha incorretos.';
-        document.getElementById('inp-senha').value = '';
-      }
-    })
-    .catch(() => {
-      document.getElementById('carregando').classList.remove('visivel');
-      document.getElementById('btn-entrar').disabled = false;
+    if (dados.ok) {
+      sessionStorage.setItem('prisma_sessao', JSON.stringify(dados));
+      mostrarAcesso(dados);
+    } else {
       document.getElementById('msg-erro').classList.add('visivel');
-      document.getElementById('msg-erro').textContent = '⚠ Erro de conexão. Tente novamente.';
-    });
+      document.getElementById('msg-erro').textContent = '⚠ Código ou senha incorretos.';
+      document.getElementById('inp-senha').value = '';
+    }
+  };
+
+  script.src = `${AUTH_URL}?codigo=${encodeURIComponent(codigo)}&senha=${encodeURIComponent(senha)}&callback=${nomeCallback}`;
+  script.onerror = function() {
+    document.getElementById('carregando').classList.remove('visivel');
+    document.getElementById('btn-entrar').disabled = false;
+    document.getElementById('msg-erro').classList.add('visivel');
+    document.getElementById('msg-erro').textContent = '⚠ Erro de conexão. Tente novamente.';
+  };
+  document.body.appendChild(script);
 }
 
 function mostrarAcesso(dados) {
