@@ -289,17 +289,7 @@ function fazerLogin() {
     });
 }
 
-  script.src = `${AUTH_URL}?codigo=${encodeURIComponent(codigo)}&senha=${encodeURIComponent(senha)}&callback=${nomeCallback}`;
-  script.onerror = function() {
-    document.getElementById('carregando').classList.remove('visivel');
-    document.getElementById('btn-entrar').disabled = false;
-    document.getElementById('msg-erro').classList.add('visivel');
-    document.getElementById('msg-erro').textContent = '⚠ Erro de conexão. Tente novamente.';
-  };
-  document.body.appendChild(script);
-}
-
-function mostrarAcesso(dados) {
+  function mostrarAcesso(dados) {
   document.getElementById('tela-login').style.display = 'none';
   document.getElementById('nome-escola').textContent = dados.nome;
   document.getElementById('btn-dashboard').href  = dados.url_dashboard;
